@@ -1,4 +1,4 @@
-set(SOURCES AndroidInterfaceForCLog.cpp)
+set(SOURCES AndroidInterfaceForCLog.cpp JNIUtils.cpp)
 
 set(HEADERS AndroidInterfaceForCLog.h)
 

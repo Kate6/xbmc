@@ -18,6 +18,44 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#if defined(TARGET_ANDROID)
+#include <android/log.h>
+#define ANDROID_PRIORITY_AUDIO -16
+#define ANDROID_PRIORITY_LOWEST 19
+#define ANDROID_PRIORITY_BACKGROUND 10
+#define ANDROID_PRIORITY_DEFAULT 0
+#define ANDROID_PRIORITY_FOREGROUND -2
+
+namespace
+{
+constexpr auto nativeThreadPriorityMap = make_map<ThreadPriority, int>({
+    {ThreadPriority::LOWEST, ANDROID_PRIORITY_LOWEST},
+    {ThreadPriority::BELOW_NORMAL, ANDROID_PRIORITY_BACKGROUND},
+    {ThreadPriority::NORMAL, ANDROID_PRIORITY_DEFAULT},
+    {ThreadPriority::ABOVE_NORMAL, ANDROID_PRIORITY_FOREGROUND},
+    {ThreadPriority::HIGHEST, ANDROID_PRIORITY_AUDIO},
+});
+
+static_assert(static_cast<size_t>(ThreadPriority::PRIORITY_COUNT) == nativeThreadPriorityMap.size(),
+              "nativeThreadPriorityMap doesn't match the size of ThreadPriority, did you forget to "
+              "add/remove a mapping?");
+
+constexpr int ThreadPriorityToNativePriority(const ThreadPriority& priority)
+{
+  const auto it = nativeThreadPriorityMap.find(priority);
+  if (it != nativeThreadPriorityMap.cend())
+  {
+    return it->second;
+  }
+  else
+  {
+    throw std::range_error("Priority not found");
+  }
+}
+std::once_flag flag;
+}
+#else
+
 #if !defined(TARGET_ANDROID) && (defined(__GLIBC__) || defined(__UCLIBC__))
 #if defined(__UCLIBC__) || !__GLIBC_PREREQ(2, 30)
 #include <sys/syscall.h>
@@ -64,6 +102,7 @@ static pid_t gettid()
 std::once_flag flag;
 
 } // namespace
+#endif
 
 static int s_appPriority = getpriority(PRIO_PROCESS, getpid());
 
@@ -79,13 +118,30 @@ CThreadImplLinux::CThreadImplLinux(std::thread::native_handle_type handle)
 
 void CThreadImplLinux::SetThreadInfo(const std::string& name)
 {
-#if defined(__GLIBC__)
+#if defined(__GLIBC__) || defined(TARGET_ANDROID)
   pthread_setname_np(m_handle, name.c_str());
 #endif
 
   m_name = name;
 }
 
+#if defined(TARGET_ANDROID)
+bool CThreadImplLinux::SetPriority(const ThreadPriority& priority)
+{
+  std::call_once(flag,
+                 []() { CLog::Log(LOGDEBUG, "[threads] app priority: '{}'", s_appPriority); });
+
+  const int prio = ThreadPriorityToNativePriority(priority);
+
+  setpriority(PRIO_PROCESS, m_threadID, prio);
+
+  const int actualPriority = getpriority(PRIO_PROCESS, m_threadID);
+
+  CLog::Log(LOGDEBUG, "[threads] name: '{}' priority: '{}'", m_name, actualPriority);
+
+  return true;
+}
+#else
 bool CThreadImplLinux::SetPriority(const ThreadPriority& priority)
 {
   std::call_once(flag,
@@ -103,3 +159,4 @@ bool CThreadImplLinux::SetPriority(const ThreadPriority& priority)
 
   return true;
 }
+#endif

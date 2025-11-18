@@ -1979,7 +1979,12 @@ bool CActiveAE::RunStages()
         double delay = status.GetDelay() * 1000;
         double playingPts = pts - delay;
         double maxError = ((*it)->m_syncState == CAESyncInfo::SYNC_INSYNC) ? 1000 : 5000;
-        double error = playingPts - (*it)->m_pClock->GetClock();
+        double clock = (*it)->m_pClock->GetClock();
+        double error = playingPts - clock;
+
+        CLog::Log(LOGDEBUG,
+                  "ActiveAE sync debug: pts={:f}, delay={:f}, playingPts={:f}, clock={:f}, error={:f}, maxError={:f}",
+                  pts, delay, playingPts, clock, error, maxError);
 
         // underestimate error for TrueHD passthrough
         // oscillations should be less than frametime 40ms to avoid unnecessary a/v sync corrections

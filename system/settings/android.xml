@@ -41,4 +41,43 @@
       </group>
     </category>
   </section>
+  <section id="services">
+    <category id="general">
+      <group id="10" label="39202">
+        <setting id="audiooutput.pipewire.enabled" type="boolean" label="39202" help="39205">
+          <level>1</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="audiooutput.pipewire.host" type="string" label="39203" help="39206">
+          <level>1</level>
+          <default>192.168.1.100</default>
+          <dependencies>
+            <dependency type="enable">
+              <condition setting="audiooutput.pipewire.enabled" operator="is">true</condition>
+            </dependency>
+          </dependencies>
+          <control type="edit" format="string">
+            <heading>39203</heading>
+          </control>
+        </setting>
+        <setting id="audiooutput.pipewire.port" type="integer" label="39204" help="39207">
+          <level>1</level>
+          <default>4711</default>
+          <dependencies>
+            <dependency type="enable">
+              <condition setting="audiooutput.pipewire.enabled" operator="is">true</condition>
+            </dependency>
+          </dependencies>
+          <constraints>
+            <minimum>1</minimum>
+            <maximum>65535</maximum>
+          </constraints>
+          <control type="edit" format="integer">
+            <heading>39204</heading>
+          </control>
+        </setting>
+      </group>
+    </category>
+  </section>
 </settings>

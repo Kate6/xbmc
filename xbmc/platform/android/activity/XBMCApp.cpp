@@ -24,6 +24,7 @@
 #include "cores/AudioEngine/AESinkFactory.h"
 #include "cores/AudioEngine/Interfaces/AE.h"
 #include "cores/AudioEngine/Sinks/AESinkAUDIOTRACK.h"
+#include "cores/AudioEngine/Sinks/AESinkRTPPipeWire.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderManager.h"
 #include "filesystem/SpecialProtocol.h"
 #include "filesystem/VideoDatabaseFile.h"
@@ -246,9 +247,10 @@ void CXBMCApp::onStart()
 
   if (m_firstrun)
   {
-    // Register sink
+    // Register sinks
     AE::CAESinkFactory::ClearSinks();
     CAESinkAUDIOTRACK::Register();
+    CAESinkRTPPipeWire::Register();
 
     // Create thread to run Kodi main event loop
     m_thread = std::thread(&CXBMCApp::run, this);

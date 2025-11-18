@@ -17,6 +17,7 @@
 #include "application/ApplicationPowerHandling.h"
 #include "application/ApplicationSkinHandling.h"
 #include "application/ApplicationVolumeHandling.h"
+#include "cores/AudioEngine/Interfaces/AE.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "messaging/ApplicationMessenger.h"
@@ -24,8 +25,8 @@
 #include "settings/SettingsComponent.h"
 #include "settings/lib/Setting.h"
 #include "settings/lib/SettingsManager.h"
-#if defined(TARGET_DARWIN_OSX)
 #include "utils/StringUtils.h"
+#if defined(TARGET_DARWIN_OSX)
 #endif
 
 namespace
@@ -70,6 +71,9 @@ void CApplicationSettingsHandling::RegisterSettings()
                                        CSettings::SETTING_SOURCE_VIDEOS,
                                        CSettings::SETTING_SOURCE_MUSIC,
                                        CSettings::SETTING_SOURCE_PICTURES,
+                                       "audiooutput.pipewire.enabled",
+                                       "audiooutput.pipewire.host",
+                                       "audiooutput.pipewire.port",
                                        CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN});
 
   auto& components = CServiceBroker::GetAppComponents();
@@ -132,6 +136,20 @@ void CApplicationSettingsHandling::OnSettingChanged(const std::shared_ptr<const 
   else if (settingId == CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH)
   {
     CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_RESTART);
+  }
+  else if (settingId == "audiooutput.pipewire.enabled")
+  {
+    CServiceBroker::GetActiveAE()->DeviceChange();
+  }
+  else if (settingId == "audiooutput.pipewire.host" ||
+           settingId == "audiooutput.pipewire.port")
+  {
+    const std::string device = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(
+        CSettings::SETTING_AUDIOOUTPUT_AUDIODEVICE);
+    if (StringUtils::StartsWith(device, "RTPPipeWire:"))
+    {
+      CServiceBroker::GetActiveAE()->DeviceChange();
+    }
   }
 }
 

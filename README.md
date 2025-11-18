@@ -35,6 +35,9 @@ Created in 2003 by a group of like minded programmers, Kodi is a non-profit proj
 
 While Kodi functions very well as a standard media player application for your computer, it has been designed to be the perfect companion for your HTPC. With its **beautiful interface and powerful skinning engine**, Kodi feels very natural to use from the couch with a remote control and is the ideal solution for your home theater.
 
+## This fork
+I'm trying to get the Android version of Kodi running on my cheap AndroidTV box to send audio to my Linux machine's PipeWire RTP-source module.
+
 ## Give your media the love it deserves
 Kodi can be used to play almost all popular audio and video formats around. It was designed for network playback, so you can stream your multimedia from anywhere in the house or directly from the internet using practically any protocol available.
 

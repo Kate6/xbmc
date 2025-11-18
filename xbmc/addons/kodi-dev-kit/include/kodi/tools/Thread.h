@@ -106,7 +106,15 @@ public:
     StopThread();
     if (m_thread != nullptr)
     {
-      m_thread->detach();
+      try
+      {
+        if (m_thread->joinable())
+          m_thread->detach();
+      }
+      catch (const std::system_error&)
+      {
+        // Best-effort detach; ignore system_error to avoid terminate.
+      }
       delete m_thread;
     }
   }
