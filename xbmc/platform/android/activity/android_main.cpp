@@ -107,12 +107,16 @@ extern void android_main(struct android_app* state)
   exit(0);
 }
 
+#include "platform/android/utils/JNIUtils.h"
+
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
   jint version = JNI_VERSION_1_6;
   JNIEnv* env;
   if (vm->GetEnv(reinterpret_cast<void**>(&env), version) != JNI_OK)
     return -1;
+
+  jni::JNIUtils::SetJavaVM(vm);
 
   CJNIMainActivity::RegisterNatives(env);
   CJNIXBMCAudioManagerOnAudioFocusChangeListener::RegisterNatives(env);

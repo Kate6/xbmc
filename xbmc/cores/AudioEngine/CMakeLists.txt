@@ -97,8 +97,10 @@ if(TARGET ${APP_NAME_LC}::Sndio)
 endif()
 
 if(TARGET ${APP_NAME_LC}::FFMPEG)
-  list(APPEND SOURCES Engines/ActiveAE/ActiveAEResampleFFMPEG.cpp)
-  list(APPEND HEADERS Engines/ActiveAE/ActiveAEResampleFFMPEG.h)
+  list(APPEND SOURCES Engines/ActiveAE/ActiveAEResampleFFMPEG.cpp
+                      Sinks/AESinkRTPPipeWire.cpp)
+  list(APPEND HEADERS Engines/ActiveAE/ActiveAEResampleFFMPEG.h
+                      Sinks/AESinkRTPPipeWire.h)
 endif()
 
 if(CORE_SYSTEM_NAME MATCHES windows)
@@ -149,8 +151,19 @@ if(CORE_SYSTEM_NAME STREQUAL darwin_embedded)
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL android)
+
   list(APPEND SOURCES Sinks/AESinkAUDIOTRACK.cpp)
+
   list(APPEND HEADERS Sinks/AESinkAUDIOTRACK.h)
+
+  if(PIPEWIRE_FOUND)
+
+    list(APPEND SOURCES Sinks/AESinkPIPEWIRE.cpp)
+
+    list(APPEND HEADERS Sinks/AESinkPIPEWIRE.h)
+
+  endif()
+
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL freebsd)
@@ -159,7 +172,7 @@ if(CORE_SYSTEM_NAME STREQUAL freebsd)
 endif()
 
 core_add_library(audioengine)
-target_include_directories(${CORE_LIBRARY} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${CORE_LIBRARY} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ../xbmc ../xbmc)
 if(NOT CORE_SYSTEM_NAME STREQUAL windows AND NOT CORE_SYSTEM_NAME STREQUAL windowsstore)
   if(HAVE_SSE)
     target_compile_options(${CORE_LIBRARY} PRIVATE -msse)

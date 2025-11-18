@@ -21,6 +21,7 @@
 #include <iostream>
 #include <mutex>
 #include <stdlib.h>
+#include <system_error>
 
 #include <fmt/format.h>
 #if FMT_VERSION >= 90000
@@ -73,7 +74,17 @@ CThread::~CThread()
   StopThread();
   if (m_thread != nullptr)
   {
-    m_thread->detach();
+    try
+    {
+      if (m_thread->joinable())
+        m_thread->detach();
+    }
+    catch (const std::system_error& e)
+    {
+      CLog::Log(LOGDEBUG,
+                "CThread::~CThread - detach failed with system_error: {}",
+                e.what());
+    }
     delete m_thread;
   }
 }
@@ -274,8 +285,16 @@ bool CThread::Join(std::chrono::milliseconds duration)
     return false;
 }
 
+#if defined(TARGET_ANDROID)
+#include "platform/android/utils/JNIUtils.h"
+#endif
+
 void CThread::Action()
 {
+#if defined(TARGET_ANDROID)
+  jni::JNIUtils::AttachCurrentThread();
+#endif
+
   try
   {
     OnStartup();
@@ -304,4 +323,7 @@ void CThread::Action()
   {
     e.LogThrowMessage("OnExit");
   }
+#if defined(TARGET_ANDROID)
+  jni::JNIUtils::DetachCurrentThread();
+#endif
 }

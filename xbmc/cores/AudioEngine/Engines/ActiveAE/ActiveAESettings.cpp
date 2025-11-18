@@ -55,7 +55,9 @@ CActiveAESettings::CActiveAESettings(CActiveAE &ae) : m_audioEngine(ae)
              CSettings::SETTING_AUDIOOUTPUT_STREAMNOISE,
              CSettings::SETTING_AUDIOOUTPUT_MIXSUBLEVEL,
              CSettings::SETTING_AUDIOOUTPUT_MAINTAINORIGINALVOLUME,
-             CSettings::SETTING_AUDIOOUTPUT_DTSHDCOREFALLBACK});
+             CSettings::SETTING_AUDIOOUTPUT_DTSHDCOREFALLBACK,
+             "audiooutput.pipewire.host",
+             "audiooutput.pipewire.port"});
 
   settings->GetSettingsManager()->RegisterSettingOptionsFiller("aequalitylevels", SettingOptionsAudioQualityLevelsFiller);
   settings->GetSettingsManager()->RegisterSettingOptionsFiller("audiodevices", SettingOptionsAudioDevicesFiller);
