@@ -524,7 +524,11 @@ void CAESinkRTPPipeWire::Pause()
 void CAESinkRTPPipeWire::Resume()
 {
   CLog::Log(LOGINFO, "CAESinkRTPPipeWire: Resumed.");
-  // No specific action for RTP sending on resume.
+  // Reset the rate emulation clock to avoid trying to "catch up" after a pause.
+  if (m_rateEmu)
+  {
+    m_firstPts = AV_NOPTS_VALUE;
+  }
 }
 
 void CAESinkRTPPipeWire::WaitUntilWeCanWrite()
