@@ -390,6 +390,7 @@ unsigned int CAESinkRTPPipeWire::AddPackets(uint8_t** data, unsigned int frames,
 
     if (m_frame->nb_samples > 0)
     {
+      m_samplesCount += m_frame->nb_samples;
       m_frame->pts = m_pts;
       m_pts += m_frame->nb_samples;
       int ret = avcodec_send_frame(m_codecContext, m_frame);
@@ -523,12 +524,24 @@ void CAESinkRTPPipeWire::Pause()
 
 void CAESinkRTPPipeWire::Resume()
 {
-  CLog::Log(LOGINFO, "CAESinkRTPPipeWire: Resumed.");
-  // Reset the rate emulation clock to avoid trying to "catch up" after a pause.
-  if (m_rateEmu)
+  CLog::Log(LOGINFO, "CAESinkRTPPipeWire: Resumed. Re-initializing RTP stream to prevent audio desync.");
+
+  // Fully re-initialize FFmpeg to ensure a clean stream state after pause.
+  // This is heavier but more robust than trying to resume a stale stream.
+  CloseFFmpeg();
+
+  if (!InitFFmpeg(m_format))
   {
-    m_firstPts = AV_NOPTS_VALUE;
+    CLog::Log(LOGERROR, "CAESinkRTPPipeWire: Failed to re-initialize FFmpeg on resume. Audio may not work.");
+    m_started = false;
+    return;
   }
+
+  // After a successful re-initialization, reset timing and buffer states.
+  ClearBuffers();
+  m_pts = 0;
+
+  m_started = true;
 }
 
 void CAESinkRTPPipeWire::WaitUntilWeCanWrite()
@@ -552,7 +565,6 @@ void CAESinkRTPPipeWire::ClearBuffers()
     buf.clear();
   }
   
-  m_pts = 0;
   m_samplesCount = 0;
   m_firstPts = AV_NOPTS_VALUE;
   m_startTime = std::chrono::steady_clock::now();
@@ -570,46 +582,7 @@ void CAESinkRTPPipeWire::Flush()
 
 void CAESinkRTPPipeWire::Drain()
 {
-  std::unique_lock<CCriticalSection> lock(m_critSection);
   CLog::Log(LOGINFO, "CAESinkRTPPipeWire: Draining.");
-
-  if (!m_interleaved_buffer.empty())
-  {
-    CLog::Log(LOGWARNING, "CAESinkRTPPipeWire: Discarding {} bytes from interleaved buffer during drain.", m_interleaved_buffer.size());
-  }
-  for (size_t i = 0; i < m_planar_buffer.size(); ++i)
-  {
-    if (!m_planar_buffer[i].empty())
-    {
-      CLog::Log(LOGWARNING, "CAESinkRTPPipeWire: Discarding {} bytes from planar buffer channel {} during drain.", m_planar_buffer[i].size(), i);
-    }
-  }
-
-  // Send null frames to drain the encoder
-  int ret;
-  if (m_codecContext)
-  {
-    ret = avcodec_send_frame(m_codecContext, nullptr); // Drain
-    if (ret >= 0)
-    {
-      while (true)
-      {
-        ret = avcodec_receive_packet(m_codecContext, m_packet);
-        if (ret == AVERROR_EOF)
-          break;
-        else if (ret < 0)
-        {
-          CLog::Log(LOGERROR, "CAESinkRTPPipeWire: Error during draining: %s", av_err2str(ret));
-          break;
-        }
-
-        m_packet->stream_index = m_audioStream->index;
-        av_packet_rescale_ts(m_packet, m_codecContext->time_base, m_audioStream->time_base);
-        av_interleaved_write_frame(m_formatContext, m_packet);
-        av_packet_unref(m_packet);
-      }
-    }
-  }
   ClearBuffers();
 }
 
