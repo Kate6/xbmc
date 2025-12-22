@@ -109,6 +109,12 @@
 			<onclick>PlayerResolutionSelect</onclick>
 			<visible>Player.HasResolutions</visible>
 		</control>
+		<control type="button" id="22111">
+			<include>DialogSettingButton</include>
+			<label>$LOCALIZE[545]</label>
+			<label2>$INFO[System.AudioOutputDevice]</label2>
+			<onclick>ToggleAudioDevice</onclick>
+		</control>
 		<control type="button" id="22109">
 			<include>DialogSettingButton</include>
 			<label>$LOCALIZE[31142]</label>

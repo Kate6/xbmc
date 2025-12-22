@@ -20,12 +20,14 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "settings/lib/Setting.h"
 #include "utils/JSONVariantParser.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "utils/Variant.h"
 #include "utils/log.h"
 
+#include <algorithm>
 #include <stdlib.h>
 
 /*! \brief Extract an archive.
@@ -137,6 +139,45 @@ static int ToggleDPMS(const std::vector<std::string>& params)
   return 0;
 }
 
+/*! \brief Toggle audio output device.
+ *  \param params (ignored)
+ */
+static int ToggleAudioDevice(const std::vector<std::string>& params)
+{
+  std::shared_ptr<CSettingString> setting = std::dynamic_pointer_cast<CSettingString>(
+      CServiceBroker::GetSettingsComponent()->GetSettings()->GetSetting(CSettings::SETTING_AUDIOOUTPUT_AUDIODEVICE));
+
+  if (!setting)
+    return 0;
+
+  StringSettingOptions options = setting->UpdateDynamicOptions();
+  if (options.empty())
+    return 0;
+
+  std::string current = setting->GetValue();
+  auto it = std::find_if(options.begin(), options.end(), [&current](const StringSettingOption& option) {
+    return option.value == current;
+  });
+
+  if (it == options.end())
+  {
+    // Current value not in list, select first
+    setting->SetValue(options.front().value);
+  }
+  else
+  {
+    // Select next
+    ++it;
+    if (it == options.end())
+      it = options.begin();
+    setting->SetValue(it->value);
+  }
+
+  CServiceBroker::GetSettingsComponent()->GetSettings()->Save();
+
+  return 0;
+}
+
 /*! \brief Send a WOL packet to a given host.
  *  \param params The parameters.
  *  \details params[0] = The MAC of the host to wake.
@@ -215,6 +256,7 @@ CBuiltins::CommandMap CApplicationBuiltins::GetOperations() const
            {"mute", {"Mute the player", 0, Mute}},
            {"notifyall", {"Notify all connected clients", 2, NotifyAll}},
            {"setvolume", {"Set the current volume", 1, SetVolume}},
+           {"toggleaudiodevice", {"Toggle audio output device", 0, ToggleAudioDevice}},
            {"toggledebug", {"Enables/disables debug mode", 0, ToggleDebug}},
            {"toggledpms", {"Toggle DPMS mode manually", 0, ToggleDPMS}},
            {"wakeonlan", {"Sends the wake-up packet to the broadcast address for the specified MAC address", 1, WakeOnLAN}}
