@@ -573,6 +573,7 @@ static constexpr unsigned int SYSTEM_LOCALE_TIMEZONECOUNTRY = 1009;
 static constexpr unsigned int SYSTEM_LOCALE_TIMEZONE = 1010;
 static constexpr unsigned int SYSTEM_LOCALE_REGION = 1011;
 static constexpr unsigned int SYSTEM_LOCALE = 1012;
+#define SYSTEM_AUDIO_OUTPUT_DEVICE 1013
 
 #define PVR_CONDITIONS_START        1100
 #define PVR_IS_RECORDING            (PVR_CONDITIONS_START)

@@ -30,6 +30,8 @@
 #include "settings/SettingUtils.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "settings/lib/Setting.h"
+#include "settings/lib/SettingDefinitions.h"
 #include "storage/MediaManager.h"
 #include "storage/discs/IDiscDriveHandler.h"
 #include "utils/AlarmClock.h"
@@ -42,6 +44,8 @@
 #include "utils/TimeUtils.h"
 #include "windowing/WinSystem.h"
 #include "windows/GUIMediaWindow.h"
+
+#include <algorithm>
 
 using namespace KODI::GUILIB;
 using namespace KODI::GUILIB::GUIINFO;
@@ -297,6 +301,36 @@ bool CSystemGUIInfo::GetLabel(std::string& value, const CFileItem *item, int con
     case SYSTEM_RENDER_VERSION:
       value = CServiceBroker::GetRenderSystem()->GetRenderVersionString();
       return true;
+    case SYSTEM_AUDIO_OUTPUT_DEVICE:
+    {
+      const std::shared_ptr<CSettingString> setting = std::dynamic_pointer_cast<CSettingString>(
+          CServiceBroker::GetSettingsComponent()->GetSettings()->GetSetting(CSettings::SETTING_AUDIOOUTPUT_AUDIODEVICE));
+      if (setting)
+      {
+        std::string current = setting->GetValue();
+        StringSettingOptions options = setting->GetDynamicOptions();
+
+        auto it = std::find_if(options.begin(), options.end(), [&current](const StringSettingOption& option) {
+          return option.value == current;
+        });
+
+        if (it == options.end())
+        {
+          options = setting->UpdateDynamicOptions();
+          it = std::find_if(options.begin(), options.end(), [&current](const StringSettingOption& option) {
+            return option.value == current;
+          });
+        }
+
+        if (it != options.end())
+          value = it->label;
+        else
+          value = current;
+
+        return true;
+      }
+      return false;
+    }
     case SYSTEM_ADDON_UPDATE_COUNT:
       value = CServiceBroker::GetAddonMgr().GetLastAvailableUpdatesCountAsString();
       return true;

@@ -70,6 +70,13 @@
 						<onclick>NextSubtitle</onclick>
 						<visible>VideoPlayer.HasSubtitles</visible>
 					</control>
+					<control type="button" id="11109">
+						<width>700</width>
+						<include>DialogSettingButton</include>
+						<label>$LOCALIZE[545]</label>
+						<label2>$INFO[System.AudioOutputDevice]</label2>
+						<onclick>ToggleAudioDevice</onclick>
+					</control>
 					<control type="button" id="11105">
 						<width>700</width>
 						<include>DialogSettingButton</include>

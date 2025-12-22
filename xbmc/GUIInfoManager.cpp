@@ -1990,7 +1990,8 @@ const infomap system_labels[] = {
     {"addonupdatecount", SYSTEM_ADDON_UPDATE_COUNT},
     {"supportscpuusage", SYSTEM_SUPPORTS_CPU_USAGE},
     {"supportedhdrtypes", SYSTEM_SUPPORTED_HDR_TYPES},
-    {"isscreensaverinhibited", SYSTEM_IS_SCREENSAVER_INHIBITED}};
+    {"isscreensaverinhibited", SYSTEM_IS_SCREENSAVER_INHIBITED},
+    {"audiooutputdevice", SYSTEM_AUDIO_OUTPUT_DEVICE}};
 
 /// \page modules__infolabels_boolean_conditions
 ///   \table_row3{   <b>`System.HasAddon(id)`</b>,
