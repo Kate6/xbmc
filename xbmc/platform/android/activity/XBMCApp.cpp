@@ -324,6 +324,14 @@ void CXBMCApp::onResume()
   if (messenger)
     messenger->PostMsg(TMSG_RESUMEAPP);
 
+  // refresh the network interface list to ensure we have the correct state
+  if (g_application.IsInitialized())
+  {
+    CNetworkBase& net = CServiceBroker::GetNetwork();
+    CNetworkAndroid* netdroid = static_cast<CNetworkAndroid*>(&net);
+    netdroid->RetrieveInterfaces();
+  }
+
   m_headsetPlugged = isHeadsetPlugged();
 
   // Clear the applications cache. We could have installed/deinstalled apps
