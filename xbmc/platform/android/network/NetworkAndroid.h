@@ -63,8 +63,10 @@ public:
   using CNetworkBase::PingHost;
   bool PingHost(unsigned long remote_ip, unsigned int timeout_ms = 2000) override;
 
-protected:
+public:
   void RetrieveInterfaces();
+
+protected:
   std::vector<CNetworkInterface*> m_interfaces;
   std::vector<CNetworkInterface*> m_oldInterfaces;
   CCriticalSection m_refreshMutex;
